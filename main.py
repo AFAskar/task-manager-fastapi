@@ -28,6 +28,12 @@ def get_animal(animal_id: int):
     return animals.get(animal_id, {"error": "Animal not found"})
 
 
+@app.get("/animals/{species}")
+def get_all_by_species(species: str):
+    result = {aid: info for aid, info in animals.items() if info["species"] == species}
+    return result
+
+
 @app.put("/animals/{animal_id}")
 def update_animal(animal_id: int, name: str | None, species: str | None):
     if not name and not species:
