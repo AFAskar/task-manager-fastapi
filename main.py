@@ -1,7 +1,8 @@
-from typing import Optional
+from typing import Annotated, Literal
 import fastapi
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+from pydantic import BaseModel
 
 app = fastapi.FastAPI()
 
@@ -11,11 +12,16 @@ app.mount("/static", StaticFiles(directory=static_path), name="static")
 animals = {}
 
 
+class Animal(BaseModel):
+    name: str
+    species: Literal["feline", "canine", "avian", "reptile", "amphibian", "fish"]
+
+
 @app.post("/animals/")
-def create_animal(name: str, species: str):
+def create_animal(animal: Annotated[Animal, fastapi.Query()]):
     animal_id = len(animals) + 1
-    animals[animal_id] = {"name": name, "species": species}
-    return {"id": animal_id, "name": name, "species": species}
+    animals[animal_id] = {"name": animal.name, "species": animal.species}
+    return {"id": animal_id, "name": animal.name, "species": animal.species}
 
 
 @app.get("/animals/")
