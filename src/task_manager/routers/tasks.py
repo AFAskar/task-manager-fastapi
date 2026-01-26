@@ -22,6 +22,7 @@ async def create_task(task: Task):
     task_data = task.model_dump()
     task_data["id"] = new_id
     database.DB[f"task_{new_id}"] = task_data
+    database.save()
     return Task(**task_data)
 
 
@@ -32,6 +33,7 @@ async def update_task(task_id: int, task: Task):
     task_data = task.model_dump()
     task_data["id"] = task_id
     database.DB[f"task_{task_id}"] = task_data
+    database.save()
     return Task(**task_data)
 
 
@@ -40,4 +42,5 @@ async def delete_task(task_id: int):
     if f"task_{task_id}" not in database.DB:
         return {"error": "Task not found"}
     del database.DB[f"task_{task_id}"]
+    database.save()
     return {"message": "Task deleted successfully"}

@@ -141,6 +141,7 @@ async def create_user(user: UserCreate):
     user_data["id"] = new_id
     user_in_db = UserInDB(**user_data, hashed_password=hashed_password)
     database.DB[f"user_{new_id}"] = user_in_db.model_dump()
+    database.save()
     return User(**user_in_db.model_dump())
 
 
