@@ -30,14 +30,17 @@ def get_password_hash(password):
     return password_hash.hash(password)
 
 
-def get_user(mock_db, username: str | None):
-    if username in mock_db:
-        user_dict = mock_db[username]
+def get_user(mock_db, user_id: int | str | None):
+    if user_id is None:
+        return None
+    key = f"user_{user_id}"
+    if key in mock_db:
+        user_dict = mock_db[key]
         return UserInDB(**user_dict)
 
 
-def authenticate_user(mock_db, username: str, password: str):
-    user = get_user(mock_db, username)
+def authenticate_user(mock_db, user_id: int | str, password: str):
+    user = get_user(mock_db, user_id)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -70,7 +73,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(username=username)
     except InvalidTokenError:
         raise credentials_exception
-    user = get_user(MockDB, username=token_data.username)
+    user = get_user(MockDB, user_id=token_data.username)
     if user is None:
         raise credentials_exception
     return user
@@ -97,7 +100,7 @@ async def login_for_access_token(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": str(user.id)}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
 
@@ -111,13 +114,15 @@ async def read_users_me(
 
 @user_routes.post("/", response_model=User)
 async def create_user(user: User, password: str):
-    if user.username in MockDB or user.username.lower in MockDB:
-        raise HTTPException(status_code=400, detail="Username already registered")
+    # ensure username is unique across DB entries
+    for v in MockDB.values():
+        if v.get("username", "").lower() == user.username.lower():
+            raise HTTPException(status_code=400, detail="Username already registered")
     hashed_password = get_password_hash(password)
     new_id = models.NEXT_USER_ID
     models.NEXT_USER_ID += 1
     user_data = user.model_dump()
     user_data["id"] = new_id
     user_in_db = UserInDB(**user_data, hashed_password=hashed_password)
-    MockDB[user.username] = user_in_db.model_dump()
+    MockDB[f"user_{new_id}"] = user_in_db.model_dump()
     return User(**user_in_db.model_dump())
