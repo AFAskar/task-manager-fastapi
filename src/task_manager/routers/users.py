@@ -114,6 +114,10 @@ async def create_user(user: User, password: str):
     if user.username in MockDB or user.username.lower in MockDB:
         raise HTTPException(status_code=400, detail="Username already registered")
     hashed_password = get_password_hash(password)
-    user_in_db = UserInDB(**user.model_dump(), hashed_password=hashed_password)
+    new_id = models.NEXT_USER_ID
+    models.NEXT_USER_ID += 1
+    user_data = user.model_dump()
+    user_data["id"] = new_id
+    user_in_db = UserInDB(**user_data, hashed_password=hashed_password)
     MockDB[user.username] = user_in_db.model_dump()
-    return user
+    return User(**user_in_db.model_dump())

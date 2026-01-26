@@ -2,12 +2,13 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field
 
 DB = {}
+NEXT_USER_ID = 1
 STATUSES = Literal["pending", "in progress", "completed"]
 ROLES = Literal["admin", "manager", "team member", "user"]
 
 
 class User(BaseModel):
-    id: int
+    id: int | None = None
     username: str
     role: ROLES = Field(default="user")
     full_name: str | None = None
@@ -24,6 +25,7 @@ class TokenData(BaseModel):
 
 
 class UserInDB(User):
+    id: int
     hashed_password: str
 
 
