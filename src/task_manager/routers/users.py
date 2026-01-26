@@ -18,6 +18,7 @@ User = models.User
 UserInDB = models.UserInDB
 TokenData = models.TokenData
 Token = models.Token
+Task = models.Task
 MockDB = models.DB
 password_hash = PasswordHash.recommended()
 
@@ -126,3 +127,12 @@ async def create_user(user: User, password: str):
     user_in_db = UserInDB(**user_data, hashed_password=hashed_password)
     MockDB[f"user_{new_id}"] = user_in_db.model_dump()
     return User(**user_in_db.model_dump())
+
+
+@user_routes.get("/{user_id}/tasks", response_model=list[Task])
+async def read_user_tasks(user_id: int):
+    user_tasks = []
+    for task_key, task_data in MockDB.items():
+        if task_data.get("assigned_to") == f"user_{user_id}":
+            user_tasks.append(Task(**task_data))
+    return user_tasks

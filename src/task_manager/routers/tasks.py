@@ -16,14 +16,6 @@ async def read_task(task_id: int):
     return {"error": "Task not found"}
 
 
-async def read_user_tasks(user_id: int):
-    user_tasks = []
-    for task_key, task_data in MockDB.items():
-        if task_data.get("assigned_to") == f"user_{user_id}":
-            user_tasks.append(Task(**task_data))
-    return user_tasks
-
-
 @task_routes.post("/")
 async def create_task(task: Task):
     new_id = models.NEXT_TASK_ID
