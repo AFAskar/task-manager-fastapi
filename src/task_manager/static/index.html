@@ -7,362 +7,148 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#6366f1',
+                        'primary-light': '#818cf8',
+                        secondary: '#ec4899',
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --primary: #6366f1;
-            --primary-light: #818cf8;
-            --secondary: #ec4899;
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-
-        /* Glassmorphism Utilities */
+        /* Custom Utilities for glassmorphism */
         .glass {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        .glass-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: transform 0.2s, box-shadow 0.2s;
+        
+        .animate-in {
+            animation: fadeIn 0.4s ease-out forwards;
         }
 
-        .glass-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-            border-color: var(--primary-light);
-        }
-
-        /* Layout & Containers */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            width: 100%;
-        }
-
-        .center-screen {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 1rem;
-        }
-
-        /* Buttons & Inputs */
-        .btn {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            font-size: 0.95rem;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--text-muted);
-            color: var(--text-muted);
-        }
-
-        .btn-outline:hover {
-            border-color: var(--text-main);
-            color: var(--text-main);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(15, 23, 42, 0.5);
-            color: white;
-            margin-bottom: 1rem;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--primary);
-        }
-
-        /* Authentication View */
-        #auth-view {
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .auth-toggle {
-            margin-top: 1rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        .auth-toggle:hover {
-            color: var(--primary-light);
-            text-decoration: underline;
-        }
-
-        /* Dashboard View */
-        #dashboard-view {
-            display: none;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(to right, var(--primary-light), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .task-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .task-card {
-            padding: 1.5rem;
-            border-radius: 1rem;
-            position: relative;
-        }
-
-        .task-status {
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-            font-size: 0.75rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-        }
-
-        .status-pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
-        .status-inprogress { background: rgba(99, 102, 241, 0.2); color: var(--primary-light); }
-        .status-completed { background: rgba(34, 197, 94, 0.2); color: var(--success); }
-
-        .task-title {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-            padding-right: 2rem;
-        }
-
-        .task-desc {
-            color: var(--text-muted);
-            margin-bottom: 1.5rem;
-            line-height: 1.5;
-            font-size: 0.95rem;
-        }
-
-        .task-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .priority-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .priority-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .modal {
-            background: var(--bg-card);
-            padding: 2rem;
-            border-radius: 1rem;
-            width: 100%;
-            max-width: 500px;
-            transform: scale(0.95);
-            transition: transform 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-overlay.active .modal {
-            transform: scale(1);
-        }
-
-        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        .animate-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
         
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            display: none;
-            animation: fadeIn 0.3s ease-out;
+        /* Select Dropdown Arrow Hack for consistent UI across browsers */
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
-
     </style>
 </head>
-<body>
+<body class="bg-dark text-slate-100 min-h-screen flex flex-col font-sans overflow-x-hidden selection:bg-primary selection:text-white">
 
     <!-- Auth View -->
-    <div id="auth-view" class="center-screen glass">
-        <div class="glass-card" style="padding: 2.5rem; border-radius: 1rem; width: 100%;">
-            <h2 id="auth-title" class="logo" style="margin-bottom: 2rem;">TaskMaster</h2>
+    <div id="auth-view" class="flex items-center justify-center min-h-screen p-4">
+        <div class="glass w-full max-w-md p-10 rounded-2xl shadow-2xl">
+            <h2 id="auth-title" class="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-primary-light to-secondary text-center">TaskMaster</h2>
             
-            <form id="auth-form" onsubmit="handleAuth(event)">
-                <div id="register-fields" style="display: none;">
-                    <!-- Email field technically not needed by schema but good for specific semantics if expanded -->
-                </div>
+            <form id="auth-form" onsubmit="handleAuth(event)" class="space-y-4">
+                <input type="text" id="username" placeholder="Username" required 
+                    class="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all">
                 
-                <input type="text" id="username" placeholder="Username" required>
-                <input type="password" id="password" placeholder="Password" required>
+                <input type="password" id="password" placeholder="Password" required 
+                    class="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all">
                 
-                <button type="submit" class="btn" style="width: 100%">Sign In</button>
+                <button type="submit" 
+                    class="w-full py-3 px-6 rounded-lg bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity font-semibold text-white shadow-lg shadow-primary/25">
+                    Sign In
+                </button>
             </form>
             
-            <p class="auth-toggle" onclick="toggleAuthMode()">
+            <p class="mt-6 text-center text-slate-400 text-sm cursor-pointer hover:text-primary-light transition-colors" onclick="toggleAuthMode()">
                 <span id="auth-toggle-text">New here? Create an account</span>
             </p>
         </div>
     </div>
 
     <!-- Dashboard View -->
-    <div id="dashboard-view" class="container animate-in">
-        <header>
-            <div class="logo">TaskMaster</div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <span id="user-greeting" style="color: var(--text-muted);">Hello, User</span>
-                <button onclick="openTaskModal()" class="btn">+ New Task</button>
-                <button onclick="logout()" class="btn btn-outline">Logout</button>
+    <div id="dashboard-view" class="hidden container mx-auto px-6 py-8 animate-in max-w-7xl">
+        <header class="flex justify-between items-center mb-10 pb-6 border-b border-white/10">
+            <div class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary-light to-secondary">TaskMaster</div>
+            <div class="flex items-center gap-4">
+                <span id="user-greeting" class="text-slate-400 font-medium hidden sm:block">Hello, User</span>
+                <button onclick="openTaskModal()" 
+                    class="px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-medium text-sm transition-all shadow-lg shadow-primary/20">
+                    + New Task
+                </button>
+                <button onclick="logout()" 
+                    class="px-5 py-2.5 rounded-lg border border-slate-600 text-slate-400 hover:text-white hover:border-white transition-colors text-sm font-medium">
+                    Logout
+                </button>
             </div>
         </header>
 
-        <h3 style="margin-bottom: 1.5rem; font-weight: 500;">Your Tasks</h3>
-        <div id="task-grid" class="task-grid">
+        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+            Your Tasks
+        </h3>
+        
+        <div id="task-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Tasks will be injected here -->
         </div>
         
-        <div id="empty-state" style="text-align: center; margin-top: 4rem; display: none;">
-            <p style="color: var(--text-muted); margin-bottom: 1rem;">No tasks found.</p>
-            <button onclick="openTaskModal()" class="btn btn-outline">Create your first task</button>
+        <div id="empty-state" class="text-center mt-20 hidden">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-800 mb-4">
+                <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+            </div>
+            <p class="text-slate-400 mb-6 text-lg">No tasks found in your workspace.</p>
+            <button onclick="openTaskModal()" class="px-6 py-2 rounded-full border border-slate-600 text-slate-300 hover:bg-slate-800 transition-colors">
+                Create your first task
+            </button>
         </div>
     </div>
 
     <!-- Create/Edit Task Modal -->
-    <div id="task-modal" class="modal-overlay">
-        <div class="modal">
-            <h2 style="margin-bottom: 1.5rem;">New Task</h2>
-            <form id="task-form" onsubmit="handleTaskSubmit(event)">
+    <div id="task-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center z-50 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="glass bg-card w-full max-w-lg p-8 rounded-2xl transform scale-95 transition-transform duration-200 m-4">
+            <h2 class="text-2xl font-bold mb-6">New Task</h2>
+            <form id="task-form" onsubmit="handleTaskSubmit(event)" class="space-y-5">
                 <input type="hidden" id="task-id">
                 
-                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Title</label>
-                <input type="text" id="task-title" placeholder="My Awesome Task" required>
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Title</label>
+                    <input type="text" id="task-title" placeholder="My Awesome Task" required 
+                        class="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all">
+                </div>
                 
-                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Description</label>
-                <textarea id="task-desc" rows="3" placeholder="Task details..."></textarea>
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Description</label>
+                    <textarea id="task-desc" rows="3" placeholder="Task details..." 
+                        class="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"></textarea>
+                </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Priority</label>
-                        <select id="task-priority">
+                        <label class="block mb-2 text-sm font-medium text-slate-400">Priority</label>
+                        <select id="task-priority" class="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-white/10 text-white focus:outline-none focus:border-primary transition-all appearance-none">
                             <option value="low">Low</option>
                             <option value="medium" selected>Medium</option>
                             <option value="high">High</option>
                         </select>
                     </div>
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Status</label>
-                        <select id="task-status">
+                        <label class="block mb-2 text-sm font-medium text-slate-400">Status</label>
+                        <select id="task-status" class="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-white/10 text-white focus:outline-none focus:border-primary transition-all appearance-none">
                             <option value="pending" selected>Pending</option>
                             <option value="in progress">In Progress</option>
                             <option value="completed">Completed</option>
@@ -370,23 +156,29 @@
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                    <button type="button" onclick="closeTaskModal()" class="btn btn-outline" style="flex: 1;">Cancel</button>
-                    <button type="submit" class="btn" style="flex: 1;">Save Task</button>
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="closeTaskModal()" 
+                        class="flex-1 py-3 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 transition-colors font-medium">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                        class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary-light transition-colors text-white font-medium shadow-lg shadow-primary/20">
+                        Save Task
+                    </button>
                 </div>
             </form>
         </div>
     </div>
     
-    <div id="toast" class="toast">Action Successful</div>
+    <div id="toast" class="fixed bottom-6 right-6 px-6 py-4 rounded-lg bg-card border border-white/10 shadow-2xl z-50 hidden animate-in flex items-center gap-3">
+        <span id="toast-msg">Action Successful</span>
+    </div>
 
     <script>
-        // State
         let isLoginMode = true;
         let currentUser = null;
         let tasks = [];
 
-        // App Initialization
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('token');
             if (token) {
@@ -449,23 +241,19 @@
                 const err = await res.json();
                 throw new Error(err.detail || 'Registration failed');
             }
-
-            // Auto-login after register
             await login(username, password);
         }
 
         function logout() {
             localStorage.removeItem('token');
             currentUser = null;
-            document.getElementById('auth-view').style.display = 'flex';
-            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('auth-view').classList.remove('hidden');
+            document.getElementById('auth-view').classList.add('flex');
+            document.getElementById('dashboard-view').classList.add('hidden');
         }
-
-        // --- User Data & Dashboard --- //
 
         async function initApp(token) {
             try {
-                // Get User Info
                 const userRes = await fetch('/users/me/', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -478,9 +266,9 @@
                 currentUser = await userRes.json();
                 document.getElementById('user-greeting').textContent = `Hello, ${currentUser.username}`;
                 
-                // Show Dashboard
-                document.getElementById('auth-view').style.display = 'none';
-                document.getElementById('dashboard-view').style.display = 'block';
+                document.getElementById('auth-view').classList.add('hidden');
+                document.getElementById('auth-view').classList.remove('flex');
+                document.getElementById('dashboard-view').classList.remove('hidden');
                 
                 loadTasks();
             } catch (e) {
@@ -491,49 +279,54 @@
         async function loadTasks() {
             if (!currentUser) return;
             const token = localStorage.getItem('token');
-            
             const res = await fetch(`/users/${currentUser.id}/tasks`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
             if (res.ok) {
                 tasks = await res.json();
                 renderTasks();
             }
         }
 
-        // --- Task Rendering --- //
-
         function renderTasks() {
             const grid = document.getElementById('task-grid');
             grid.innerHTML = '';
             
             if (tasks.length === 0) {
-                document.getElementById('empty-state').style.display = 'block';
+                document.getElementById('empty-state').classList.remove('hidden');
                 return;
             } else {
-                document.getElementById('empty-state').style.display = 'none';
+                document.getElementById('empty-state').classList.add('hidden');
             }
 
             tasks.forEach(task => {
-                const statusClass = `status-${task.status.replace(' ', '')}`;
-                const priorityColor = task.priority === 'high' ? 'var(--danger)' : 
-                                      task.priority === 'medium' ? 'var(--warning)' : 'var(--success)';
+                let statusInfo = {
+                    'pending': { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20' },
+                    'in progress': { bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20' },
+                    'completed': { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' }
+                }[task.status];
+                
+                if (!statusInfo) statusInfo = { bg: 'bg-slate-700', text: 'text-slate-300', border: 'border-slate-700' };
+
+                const priorityColor = task.priority === 'high' ? 'bg-red-500' : 
+                                      task.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500';
                 
                 const card = document.createElement('div');
-                card.className = 'glass-card task-card animate-in';
+                card.className = `glass rounded-xl p-6 relative hover:-translate-y-1 transition-transform duration-200 group`;
                 card.innerHTML = `
-                    <span class="task-status ${statusClass}">${task.status}</span>
-                    <h4 class="task-title">${task.title}</h4>
-                    <p class="task-desc">${task.description || 'No description provided'}</p>
-                    <div class="task-meta">
-                        <div class="priority-badge">
-                            <span class="priority-dot" style="background: ${priorityColor}"></span>
-                            ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
+                    <span class="absolute top-6 right-6 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${statusInfo.bg} ${statusInfo.text} ${statusInfo.border} border">
+                        ${task.status}
+                    </span>
+                    <h4 class="text-xl font-bold mb-2 pr-24 text-white">${task.title}</h4>
+                    <p class="text-slate-400 mb-6 text-sm leading-relaxed line-clamp-3">${task.description || 'No description provided'}</p>
+                    <div class="flex justify-between items-center pt-4 border-t border-white/5">
+                        <div class="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wide">
+                            <span class="w-2 h-2 rounded-full ${priorityColor}"></span>
+                            ${task.priority} Priority
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button onclick="deleteTask(${task.id})" class="btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button>
-                        </div>
+                        <button onclick="deleteTask(${task.id})" class="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 hover:text-red-400 p-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -543,25 +336,23 @@
         // --- Creates & Deletes --- //
 
         function openTaskModal() {
-            document.getElementById('task-modal').classList.add('active');
+            const modal = document.getElementById('task-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
         }
 
         function closeTaskModal() {
-            document.getElementById('task-modal').classList.remove('active');
+            const modal = document.getElementById('task-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
             document.getElementById('task-form').reset();
         }
 
         async function handleTaskSubmit(e) {
             e.preventDefault();
             const token = localStorage.getItem('token');
-            
             const title = document.getElementById('task-title').value;
             const description = document.getElementById('task-desc').value;
             const priority = document.getElementById('task-priority').value;
             const status = document.getElementById('task-status').value;
-
-            // Note: The schemas require Title to be Capitalized
-            // We'll enforce this or format it client side to be nice
             const formattedTitle = title.charAt(0).toUpperCase() + title.slice(1);
 
             const payload = {
@@ -569,7 +360,7 @@
                 description,
                 priority,
                 status,
-                assigned_to: `user_${currentUser.id}` // Important for our 'read_user_tasks' logic
+                assigned_to: `user_${currentUser.id}`
             };
 
             try {
@@ -584,9 +375,7 @@
 
                 if (!res.ok) {
                     const err = await res.json();
-                    if(err.detail && Array.isArray(err.detail)) {
-                         throw new Error(err.detail[0].msg);
-                    }
+                    if(err.detail && Array.isArray(err.detail)) throw new Error(err.detail[0].msg);
                     throw new Error('Failed to create task');
                 }
 
@@ -601,24 +390,34 @@
         async function deleteTask(taskId) {
             if(!confirm("Are you sure?")) return;
             const token = localStorage.getItem('token');
-            
             await fetch(`/tasks/${taskId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
             loadTasks();
             showToast('Task deleted');
         }
 
         function showToast(msg, isError = false) {
             const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.style.display = 'block';
-            toast.style.borderLeft = isError ? '4px solid var(--danger)' : '4px solid var(--success)';
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.remove('hidden');
+            
+            // Allow re-triggering animation
+            toast.classList.remove('animate-in');
+            void toast.offsetWidth; 
+            toast.classList.add('animate-in');
+
+            if (isError) {
+                toast.classList.add('bg-red-500/10', 'border-red-500/50', 'text-red-400');
+                toast.classList.remove('bg-card');
+            } else {
+                toast.classList.remove('bg-red-500/10', 'border-red-500/50', 'text-red-400');
+                toast.classList.add('bg-card');
+            }
             
             setTimeout(() => {
-                toast.style.display = 'none';
+                toast.classList.add('hidden');
             }, 3000);
         }
 
