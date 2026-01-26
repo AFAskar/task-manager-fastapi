@@ -160,11 +160,9 @@ Table users {
   username varchar
   role roles
   email varchar [unique]
-  email_verified_at timestamp
   password varchar
   remember_token varchar
   bio varchar
-  avatar_token_url varchar
   created_at timestamp
   updated_at timestamp
   deleted_at timestamp
@@ -180,15 +178,4 @@ Table teams{
   updated_at timestamp
   deleted_at timestamp
 
-}
-
-Table audit_log{
-  id uuid [primary key]
-  action varchar
-  entity_type varchar
-  entity_id uuid
-  old_values json
-  new_values json
-  done_by uuid [ref:> users.id]
-  done_at timestamp
 }
