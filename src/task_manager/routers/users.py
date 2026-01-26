@@ -145,6 +145,15 @@ async def create_user(user: UserCreate):
     return User(**user_in_db.model_dump())
 
 
+@user_routes.get("/", response_model=list[User])
+async def read_users():
+    users = []
+    for entry in database.DB.values():
+        if "username" in entry:
+            users.append(User(**entry))
+    return users
+
+
 @user_routes.get("/{user_id}/tasks", response_model=list[Task])
 async def read_user_tasks(user_id: int):
     user_tasks = []

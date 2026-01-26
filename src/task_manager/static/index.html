@@ -157,6 +157,13 @@
                     </div>
                 </div>
 
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Assign To</label>
+                    <select id="task-assignee" class="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-white/10 text-white focus:outline-none focus:border-primary transition-all appearance-none">
+                        <!-- Users loaded via JS -->
+                    </select>
+                </div>
+
                 <div class="flex gap-4 pt-4">
                     <button type="button" onclick="closeTaskModal()" 
                         class="flex-1 py-3 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 transition-colors font-medium">
@@ -179,6 +186,7 @@
         let isLoginMode = true;
         let currentUser = null;
         let tasks = [];
+        let allUsers = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('token');
@@ -271,9 +279,28 @@
                 document.getElementById('auth-view').classList.remove('flex');
                 document.getElementById('dashboard-view').classList.remove('hidden');
                 
-                loadTasks();
+                await Promise.all([loadTasks(), loadUsers()]);
             } catch (e) {
                 logout();
+            }
+        }
+
+        async function loadUsers() {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/users/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                allUsers = await res.json();
+                const select = document.getElementById('task-assignee');
+                select.innerHTML = '';
+                allUsers.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = `user_${user.id}`;
+                    option.textContent = user.username;
+                    if (user.id === currentUser.id) option.selected = true;
+                    select.appendChild(option);
+                });
             }
         }
 
@@ -354,6 +381,8 @@
             const description = document.getElementById('task-desc').value;
             const priority = document.getElementById('task-priority').value;
             const status = document.getElementById('task-status').value;
+            const assignedTo = document.getElementById('task-assignee').value;
+            
             // Validation: Title must start with uppercase
             if (!/^[A-Z]/.test(title)) {
                 showToast('Title must start with an uppercase letter', true);
@@ -365,7 +394,7 @@
                 description,
                 priority,
                 status,
-                assigned_to: `user_${currentUser.id}`
+                assigned_to: assignedTo
             };
 
             try {
