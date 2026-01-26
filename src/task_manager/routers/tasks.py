@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from schemas import models
-from task_manager import database
+import database
 
 task_routes = APIRouter()
 Task = models.Task
