@@ -15,6 +15,14 @@ async def read_task(task_id: int):
     return {"error": "Task not found"}
 
 
+@task_routes.get("/", response_model=list[Task])
+async def read_tasks():
+    all_tasks = []
+    for task_data in database.DB["tasks"].values():
+        all_tasks.append(Task(**task_data))
+    return all_tasks
+
+
 @task_routes.post("/")
 async def create_task(task: Task):
     new_id = database.NEXT_TASK_ID

@@ -116,6 +116,18 @@
                 Create your first task
             </button>
         </div>
+
+        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2 mt-12 border-t border-white/10 pt-10">
+            All Tasks
+        </h3>
+        
+        <div id="all-tasks-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- All Tasks injected here -->
+        </div>
+
+        <div id="all-tasks-empty" class="text-center mt-10 hidden">
+            <p class="text-slate-400">No tasks found in the system.</p>
+        </div>
     </div>
 
     <!-- Create/Edit Task Modal -->
@@ -186,6 +198,7 @@
         let isLoginMode = true;
         let currentUser = null;
         let tasks = [];
+        let allTasks = [];
         let allUsers = [];
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -279,7 +292,7 @@
                 document.getElementById('auth-view').classList.remove('flex');
                 document.getElementById('dashboard-view').classList.remove('hidden');
                 
-                await Promise.all([loadTasks(), loadUsers()]);
+                await Promise.all([loadTasks(), loadAllTasks(), loadUsers()]);
             } catch (e) {
                 logout();
             }
@@ -328,6 +341,63 @@
             }
 
             tasks.forEach(task => {
+                let statusInfo = {
+                    'pending': { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20' },
+                    'in progress': { bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20' },
+                    'completed': { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' }
+                }[task.status];
+                
+                if (!statusInfo) statusInfo = { bg: 'bg-slate-700', text: 'text-slate-300', border: 'border-slate-700' };
+
+                const priorityColor = task.priority === 'high' ? 'bg-red-500' : 
+                                      task.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500';
+                
+                const card = document.createElement('div');
+                card.className = `glass rounded-xl p-6 relative hover:-translate-y-1 transition-transform duration-200 group`;
+                card.innerHTML = `
+                    <span class="absolute top-6 right-6 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${statusInfo.bg} ${statusInfo.text} ${statusInfo.border} border">
+                        ${task.status}
+                    </span>
+                    <h4 class="text-xl font-bold mb-2 pr-24 text-white">${task.title}</h4>
+                    <p class="text-slate-400 mb-6 text-sm leading-relaxed line-clamp-3">${task.description || 'No description provided'}</p>
+                    <div class="flex justify-between items-center pt-4 border-t border-white/5">
+                        <div class="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wide">
+                            <span class="w-2 h-2 rounded-full ${priorityColor}"></span>
+                            ${task.priority} Priority
+                        </div>
+                        <button onclick="deleteTask(${task.id})" class="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 hover:text-red-400 p-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+
+        async function loadAllTasks() {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/tasks/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                allTasks = await res.json();
+                renderAllTasks();
+            }
+        }
+
+        function renderAllTasks() {
+            const grid = document.getElementById('all-tasks-grid');
+            grid.innerHTML = '';
+            
+            if (allTasks.length === 0) {
+                document.getElementById('all-tasks-empty').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('all-tasks-empty').classList.add('hidden');
+            }
+
+            allTasks.forEach(task => {
                 let statusInfo = {
                     'pending': { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20' },
                     'in progress': { bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/20' },
@@ -416,6 +486,7 @@
                 showToast('Task created successfully');
                 closeTaskModal();
                 loadTasks();
+                loadAllTasks();
             } catch (err) {
                 showToast(err.message, true);
             }
@@ -429,6 +500,7 @@
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             loadTasks();
+            loadAllTasks();
             showToast('Task deleted');
         }
 
