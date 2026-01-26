@@ -36,7 +36,7 @@ class Task(BaseModel):
         title="Title of Task",
         min_length=3,
         max_length=100,
-        regex="^[A-Z][a-zA-Z0-9 ]+$",
+        pattern="^[A-Z][a-zA-Z0-9 ]+$",
         description="Title must start with an uppercase letter and contain only alphanumeric characters and spaces.",
     )
     description: str | None = Field(
