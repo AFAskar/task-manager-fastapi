@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster | Premium Task Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --secondary: #ec4899;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            border-color: var(--primary-light);
+        }
+
+        /* Layout & Containers */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        .center-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        /* Buttons & Inputs */
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text-main);
+            color: var(--text-main);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.5);
+            color: white;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+        }
+
+        /* Authentication View */
+        #auth-view {
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .auth-toggle {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .auth-toggle:hover {
+            color: var(--primary-light);
+            text-decoration: underline;
+        }
+
+        /* Dashboard View */
+        #dashboard-view {
+            display: none;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .task-card {
+            padding: 1.5rem;
+            border-radius: 1rem;
+            position: relative;
+        }
+
+        .task-status {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .status-pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .status-inprogress { background: rgba(99, 102, 241, 0.2); color: var(--primary-light); }
+        .status-completed { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+
+        .task-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            padding-right: 2rem;
+        }
+
+        .task-desc {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .priority-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .priority-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 500px;
+            transform: scale(0.95);
+            transition: transform 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Auth View -->
+    <div id="auth-view" class="center-screen glass">
+        <div class="glass-card" style="padding: 2.5rem; border-radius: 1rem; width: 100%;">
+            <h2 id="auth-title" class="logo" style="margin-bottom: 2rem;">TaskMaster</h2>
+            
+            <form id="auth-form" onsubmit="handleAuth(event)">
+                <div id="register-fields" style="display: none;">
+                    <!-- Email field technically not needed by schema but good for specific semantics if expanded -->
+                </div>
+                
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="password" id="password" placeholder="Password" required>
+                
+                <button type="submit" class="btn" style="width: 100%">Sign In</button>
+            </form>
+            
+            <p class="auth-toggle" onclick="toggleAuthMode()">
+                <span id="auth-toggle-text">New here? Create an account</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="container animate-in">
+        <header>
+            <div class="logo">TaskMaster</div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <span id="user-greeting" style="color: var(--text-muted);">Hello, User</span>
+                <button onclick="openTaskModal()" class="btn">+ New Task</button>
+                <button onclick="logout()" class="btn btn-outline">Logout</button>
+            </div>
+        </header>
+
+        <h3 style="margin-bottom: 1.5rem; font-weight: 500;">Your Tasks</h3>
+        <div id="task-grid" class="task-grid">
+            <!-- Tasks will be injected here -->
+        </div>
+        
+        <div id="empty-state" style="text-align: center; margin-top: 4rem; display: none;">
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">No tasks found.</p>
+            <button onclick="openTaskModal()" class="btn btn-outline">Create your first task</button>
+        </div>
+    </div>
+
+    <!-- Create/Edit Task Modal -->
+    <div id="task-modal" class="modal-overlay">
+        <div class="modal">
+            <h2 style="margin-bottom: 1.5rem;">New Task</h2>
+            <form id="task-form" onsubmit="handleTaskSubmit(event)">
+                <input type="hidden" id="task-id">
+                
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Title</label>
+                <input type="text" id="task-title" placeholder="My Awesome Task" required>
+                
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Description</label>
+                <textarea id="task-desc" rows="3" placeholder="Task details..."></textarea>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Priority</label>
+                        <select id="task-priority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Status</label>
+                        <select id="task-status">
+                            <option value="pending" selected>Pending</option>
+                            <option value="in progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="button" onclick="closeTaskModal()" class="btn btn-outline" style="flex: 1;">Cancel</button>
+                    <button type="submit" class="btn" style="flex: 1;">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast">Action Successful</div>
+
+    <script>
+        // State
+        let isLoginMode = true;
+        let currentUser = null;
+        let tasks = [];
+
+        // App Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                initApp(token);
+            }
+        });
+
+        // --- Auth Logic --- //
+        
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').textContent = isLoginMode ? 'TaskMaster' : 'Join TaskMaster';
+            document.querySelector('#auth-form button').textContent = isLoginMode ? 'Sign In' : 'Create Account';
+            document.getElementById('auth-toggle-text').textContent = isLoginMode 
+                ? 'New here? Create an account' 
+                : 'Already have an account? Sign In';
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                if (isLoginMode) {
+                    await login(username, password);
+                } else {
+                    await register(username, password);
+                }
+            } catch (error) {
+                showToast(error.message, true);
+            }
+        }
+
+        async function login(username, password) {
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+
+            const res = await fetch('/users/token', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) throw new Error('Invalid credentials');
+            
+            const data = await res.json();
+            localStorage.setItem('token', data.access_token);
+            await initApp(data.access_token);
+        }
+
+        async function register(username, password) {
+            const res = await fetch('/users/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Registration failed');
+            }
+
+            // Auto-login after register
+            await login(username, password);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            currentUser = null;
+            document.getElementById('auth-view').style.display = 'flex';
+            document.getElementById('dashboard-view').style.display = 'none';
+        }
+
+        // --- User Data & Dashboard --- //
+
+        async function initApp(token) {
+            try {
+                // Get User Info
+                const userRes = await fetch('/users/me/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!userRes.ok) {
+                    logout();
+                    return;
+                }
+
+                currentUser = await userRes.json();
+                document.getElementById('user-greeting').textContent = `Hello, ${currentUser.username}`;
+                
+                // Show Dashboard
+                document.getElementById('auth-view').style.display = 'none';
+                document.getElementById('dashboard-view').style.display = 'block';
+                
+                loadTasks();
+            } catch (e) {
+                logout();
+            }
+        }
+
+        async function loadTasks() {
+            if (!currentUser) return;
+            const token = localStorage.getItem('token');
+            
+            const res = await fetch(`/users/${currentUser.id}/tasks`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (res.ok) {
+                tasks = await res.json();
+                renderTasks();
+            }
+        }
+
+        // --- Task Rendering --- //
+
+        function renderTasks() {
+            const grid = document.getElementById('task-grid');
+            grid.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                document.getElementById('empty-state').style.display = 'block';
+                return;
+            } else {
+                document.getElementById('empty-state').style.display = 'none';
+            }
+
+            tasks.forEach(task => {
+                const statusClass = `status-${task.status.replace(' ', '')}`;
+                const priorityColor = task.priority === 'high' ? 'var(--danger)' : 
+                                      task.priority === 'medium' ? 'var(--warning)' : 'var(--success)';
+                
+                const card = document.createElement('div');
+                card.className = 'glass-card task-card animate-in';
+                card.innerHTML = `
+                    <span class="task-status ${statusClass}">${task.status}</span>
+                    <h4 class="task-title">${task.title}</h4>
+                    <p class="task-desc">${task.description || 'No description provided'}</p>
+                    <div class="task-meta">
+                        <div class="priority-badge">
+                            <span class="priority-dot" style="background: ${priorityColor}"></span>
+                            ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button onclick="deleteTask(${task.id})" class="btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- Creates & Deletes --- //
+
+        function openTaskModal() {
+            document.getElementById('task-modal').classList.add('active');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('task-modal').classList.remove('active');
+            document.getElementById('task-form').reset();
+        }
+
+        async function handleTaskSubmit(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            
+            const title = document.getElementById('task-title').value;
+            const description = document.getElementById('task-desc').value;
+            const priority = document.getElementById('task-priority').value;
+            const status = document.getElementById('task-status').value;
+
+            // Note: The schemas require Title to be Capitalized
+            // We'll enforce this or format it client side to be nice
+            const formattedTitle = title.charAt(0).toUpperCase() + title.slice(1);
+
+            const payload = {
+                title: formattedTitle,
+                description,
+                priority,
+                status,
+                assigned_to: `user_${currentUser.id}` // Important for our 'read_user_tasks' logic
+            };
+
+            try {
+                const res = await fetch('/tasks/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    if(err.detail && Array.isArray(err.detail)) {
+                         throw new Error(err.detail[0].msg);
+                    }
+                    throw new Error('Failed to create task');
+                }
+
+                showToast('Task created successfully');
+                closeTaskModal();
+                loadTasks();
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function deleteTask(taskId) {
+            if(!confirm("Are you sure?")) return;
+            const token = localStorage.getItem('token');
+            
+            await fetch(`/tasks/${taskId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            loadTasks();
+            showToast('Task deleted');
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            toast.style.borderLeft = isError ? '4px solid var(--danger)' : '4px solid var(--success)';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>
