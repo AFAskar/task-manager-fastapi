@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 
 DB = {}
 NEXT_USER_ID = 1
+NEXT_TASK_ID = 1
 STATUSES = Literal["pending", "in progress", "completed"]
 ROLES = Literal["admin", "manager", "team member", "user"]
 
@@ -30,7 +31,7 @@ class UserInDB(User):
 
 
 class Task(BaseModel):
-    id: int
+    id: int | None = None
     title: str = Field(
         title="Title of Task",
         min_length=3,
