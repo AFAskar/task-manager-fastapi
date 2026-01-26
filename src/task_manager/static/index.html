@@ -296,7 +296,7 @@
                 select.innerHTML = '';
                 allUsers.forEach(user => {
                     const option = document.createElement('option');
-                    option.value = `user_${user.id}`;
+                    option.value = user.id;
                     option.textContent = user.username;
                     if (user.id === currentUser.id) option.selected = true;
                     select.appendChild(option);

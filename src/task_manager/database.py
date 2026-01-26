@@ -8,8 +8,11 @@ from pathlib import Path
 # Path to the JSON database file
 DB_FILE = Path(__file__).parent / "db.json"
 
-# In-memory database to store users and tasks
-DB = {}
+# In-memory database with valid tables
+DB = {
+    "users": {},
+    "tasks": {}
+}
 
 # Global counters for IDs
 NEXT_USER_ID = 1
@@ -37,9 +40,10 @@ def load():
         try:
             with open(DB_FILE, "r") as f:
                 data = json.load(f)
-                DB.update(data.get("DB", {}))
+                DB = data.get("DB", {"users": {}, "tasks": {}})
                 NEXT_USER_ID = data.get("NEXT_USER_ID", 1)
                 NEXT_TASK_ID = data.get("NEXT_TASK_ID", 1)
+
         except (json.JSONDecodeError, OSError) as e:
             print(f"Error loading database: {e}")
 

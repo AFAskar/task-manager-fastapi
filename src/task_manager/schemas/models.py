@@ -47,7 +47,7 @@ class Task(BaseModel):
     )]
     priority: Annotated[PRIORITIES, Field(default="medium")]
     status: Annotated[STATUSES, Field(default="pending")]
-    assigned_to: Annotated[str | None, Field(default="UnAssigned")]
+    assigned_to: Annotated[int | None, Field(default=None)]
 
     @field_validator("title")
     def title_must_be_capitalized(cls, v: str) -> str:
