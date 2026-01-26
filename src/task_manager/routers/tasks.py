@@ -24,7 +24,7 @@ async def read_tasks():
 
 
 @task_routes.post("/")
-async def create_task(task: Task):
+async def create_task(task: Task)->Task:
     new_id = database.NEXT_TASK_ID
     database.NEXT_TASK_ID += 1
     task_data = task.model_dump()
@@ -35,7 +35,7 @@ async def create_task(task: Task):
 
 
 @task_routes.put("/{task_id}")
-async def update_task(task_id: int, task: Task):
+async def update_task(task_id: int, task: Task)->Task:
     task_key = str(task_id)
     if task_key not in database.DB["tasks"]:
         return {"error": "Task not found"}
@@ -47,7 +47,7 @@ async def update_task(task_id: int, task: Task):
 
 
 @task_routes.delete("/{task_id}")
-async def delete_task(task_id: int):
+async def delete_task(task_id: int)->dict[str,str]:
     task_key = str(task_id)
     if task_key not in database.DB["tasks"]:
         return {"error": "Task not found"}

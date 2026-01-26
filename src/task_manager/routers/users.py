@@ -35,21 +35,8 @@ def get_password_hash(password):
 def get_user(mock_db, user_id: int | str | None):
     if user_id is None:
         return None
-    # We now access mock_db["users"] or mock_db (if full db passed? Let's just assume we pass the full DB object or the users table)
-    # The existing calls pass "database.DB".
-    # So we need to access database.DB["users"]
-    
-    # Wait, the signature of this helper expects "mock_db". 
-    # Let's assume mock_db IS the full DB object.
-    
-    if "users" not in mock_db: 
-        # Safety fallback or assuming mock_db IS the users dict? 
-        # Let's check call sites. authenticate_user passes database.DB. 
-        # So we should access mock_db["users"].
-        users_table = mock_db["users"]
-    else:
-        users_table = mock_db["users"]
-        
+    users_table = mock_db["users"]
+
     key = str(user_id)
     if key in users_table:
         user_dict = users_table[key]
@@ -57,7 +44,7 @@ def get_user(mock_db, user_id: int | str | None):
     return None
 
 
-def get_user_by_username(mock_db, username: str):
+def get_user_by_username(mock_db, username: str)->UserInDB:
     # Iterate purely over users table
     users_table = mock_db.get("users", {})
     for entry in users_table.values():
@@ -140,8 +127,7 @@ async def read_users_me(
 
 
 @user_routes.post("/", response_model=User)
-async def create_user(user: UserCreate):
-    # ensure username is unique across DB entries
+async def create_user(user: UserCreate)->User:
     for v in database.DB["users"].values():
         if v.get("username", "").lower() == user.username.lower():
             raise HTTPException(status_code=400, detail="Username already registered")
@@ -162,12 +148,12 @@ async def create_user(user: UserCreate):
 
 
 @user_routes.get("/", response_model=list[User])
-async def read_users():
+async def read_users()->list[User]:
     return [User(**entry) for entry in database.DB["users"].values()]
 
 
 @user_routes.get("/{user_id}/tasks", response_model=list[Task])
-async def read_user_tasks(user_id: int):
+async def read_user_tasks(user_id: int)->list[Task]:
     user_tasks = []
     for task_data in database.DB["tasks"].values():
         val = task_data.get("assigned_to")
