@@ -6,10 +6,12 @@ from pathlib import Path
 from routers import users, tasks
 import database
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_db()
     yield
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -24,3 +26,8 @@ app.include_router(tasks.task_routes, prefix="/tasks", tags=["tasks"])
 @app.get("/")
 def read_root():
     return FileResponse(static_path / "index.html")
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
