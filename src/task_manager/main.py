@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 from routers import users, tasks
+import database
 
 app = FastAPI()
 
@@ -17,3 +18,7 @@ app.include_router(tasks.task_routes, prefix="/tasks", tags=["tasks"])
 @app.get("/")
 def read_root():
     return FileResponse(static_path / "index.html")
+
+@app.get("/db")
+def read_db():
+    return database.DB

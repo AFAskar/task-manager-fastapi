@@ -14,6 +14,13 @@
                 "role": "user",
                 "disabled": null,
                 "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$khQRw6xxohhnVrGY6KPjuA$Ha4Li7KSaUyKghxDs64IyjyFGsqL8OjrKt4QdsikBcw"
+            },
+            "3": {
+                "id": 3,
+                "username": "user2",
+                "role": "user",
+                "disabled": null,
+                "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$MI0NRJYVWq0+bXQposDThQ$FP8WQyqlJkyFnCO3PpQsZTmym2sdsK7xyCcLFofZWiI"
             }
         },
         "tasks": {
@@ -56,9 +63,25 @@
                 "priority": "medium",
                 "status": "pending",
                 "assigned_to": 2
+            },
+            "7": {
+                "id": 7,
+                "title": "MyTask",
+                "description": "ksajdijhf",
+                "priority": "high",
+                "status": "completed",
+                "assigned_to": 2
+            },
+            "8": {
+                "id": 8,
+                "title": "MyTask",
+                "description": "alkfhiusd",
+                "priority": "low",
+                "status": "in progress",
+                "assigned_to": 1
             }
         }
     },
-    "NEXT_USER_ID": 3,
-    "NEXT_TASK_ID": 7
+    "NEXT_USER_ID": 4,
+    "NEXT_TASK_ID": 9
 }
