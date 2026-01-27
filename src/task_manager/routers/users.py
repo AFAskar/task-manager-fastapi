@@ -45,7 +45,6 @@ def get_user(mock_db, user_id: int | str | None):
 
 
 def get_user_by_username(mock_db, username: str)->UserInDB:
-    # Iterate purely over users table
     users_table = mock_db.get("users", {})
     for entry in users_table.values():
         if entry.get("username") == username:
