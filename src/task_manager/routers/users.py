@@ -14,7 +14,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 user_routes = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token") # Updated tokenUrl to match full path if needed, or keeping it relative
 User = models.User
 UserCreate = models.UserCreate
 UserInDB = models.UserInDB
@@ -32,28 +32,38 @@ def get_password_hash(password):
     return password_hash.hash(password)
 
 
-def get_user(mock_db, user_id: int | str | None):
+async def get_user(user_id: int | str | None):
     if user_id is None:
         return None
-    users_table = mock_db["users"]
-
-    key = str(user_id)
-    if key in users_table:
-        user_dict = users_table[key]
-        return UserInDB(**user_dict)
+    try:
+        conn = await database.get_db_connection()
+        async with conn:
+            async with conn.cursor() as cur:
+                await cur.execute("SELECT * FROM users WHERE id = %s", (int(user_id),))
+                row = await cur.fetchone()
+                if row:
+                    return UserInDB(**row)
+    except Exception as e:
+        print(f"Error getting user: {e}")
     return None
 
 
-def get_user_by_username(mock_db, username: str)->UserInDB:
-    users_table = mock_db.get("users", {})
-    for entry in users_table.values():
-        if entry.get("username") == username:
-            return UserInDB(**entry)
+async def get_user_by_username(username: str) -> UserInDB | None:
+    try:
+        conn = await database.get_db_connection()
+        async with conn:
+            async with conn.cursor() as cur:
+                await cur.execute("SELECT * FROM users WHERE username = %s", (username,))
+                row = await cur.fetchone()
+                if row:
+                    return UserInDB(**row)
+    except Exception as e:
+        print(f"Error getting user by username: {e}")
     return None
 
 
-def authenticate_user(mock_db, username: str, password: str):
-    user = get_user_by_username(mock_db, username)
+async def authenticate_user(username: str, password: str):
+    user = await get_user_by_username(username)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -86,7 +96,10 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(username=user_id)
     except InvalidTokenError:
         raise credentials_exception
-    user = get_user(database.DB, user_id=token_data.username)
+    
+    # user_id in token 'sub' is actually the ID as string in previous code, 
+    # but let's check login_for_access_token used user.id.
+    user = await get_user(user_id=token_data.username) 
     if user is None:
         raise credentials_exception
     return user
@@ -104,7 +117,7 @@ async def get_current_active_user(
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
-    user = authenticate_user(database.DB, form_data.username, form_data.password)
+    user = await authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -126,36 +139,47 @@ async def read_users_me(
 
 
 @user_routes.post("/", response_model=User)
-async def create_user(user: UserCreate)->User:
-    for v in database.DB["users"].values():
-        if v.get("username", "").lower() == user.username.lower():
-            raise HTTPException(status_code=400, detail="Username already registered")
-    
-    hashed_password = get_password_hash(user.password)
-    new_id = database.NEXT_USER_ID
-    database.NEXT_USER_ID += 1
-    
-    user_data = user.model_dump()
-    if "password" in user_data:
-        del user_data["password"]
-    
-    user_data["id"] = new_id
-    user_in_db = UserInDB(**user_data, hashed_password=hashed_password)
-    database.DB["users"][str(new_id)] = user_in_db.model_dump()
-    database.save()
-    return User(**user_in_db.model_dump())
+async def create_user(user: UserCreate) -> User:
+    conn = await database.get_db_connection()
+    async with conn:
+        async with conn.cursor() as cur:
+            # Check if username exists
+            await cur.execute("SELECT 1 FROM users WHERE username = %s", (user.username,))
+            if await cur.fetchone():
+                raise HTTPException(status_code=400, detail="Username already registered")
+            
+            hashed_password = get_password_hash(user.password)
+            
+            # Insert new user
+            await cur.execute(
+                """
+                INSERT INTO users (username, role, disabled, hashed_password)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id, username, role, disabled, hashed_password
+                """,
+                (user.username, user.role, user.disabled, hashed_password)
+            )
+            new_user_data = await cur.fetchone()
+            await conn.commit()
+            
+            return UserInDB(**new_user_data)
 
 
 @user_routes.get("/", response_model=list[User])
-async def read_users()->list[User]:
-    return [User(**entry) for entry in database.DB["users"].values()]
+async def read_users() -> list[User]:
+    conn = await database.get_db_connection()
+    async with conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT * FROM users")
+            rows = await cur.fetchall()
+            return [UserInDB(**row) for row in rows]
 
 
 @user_routes.get("/{user_id}/tasks", response_model=list[Task])
-async def read_user_tasks(user_id: int)->list[Task]:
-    user_tasks = []
-    for task_data in database.DB["tasks"].values():
-        val = task_data.get("assigned_to")
-        if val == user_id:
-            user_tasks.append(Task(**task_data))
-    return user_tasks
+async def read_user_tasks(user_id: int) -> list[Task]:
+    conn = await database.get_db_connection()
+    async with conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT * FROM tasks WHERE assigned_to = %s", (user_id,))
+            rows = await cur.fetchall()
+            return [Task(**row) for row in rows]

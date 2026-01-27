@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from schemas import models
 import database
 
@@ -8,49 +8,77 @@ Task = models.Task
 
 @task_routes.get("/{task_id}", response_model=Task)
 async def read_task(task_id: int):
-    task_key = str(task_id)
-    if task_key in database.DB["tasks"]:
-        task_data = database.DB["tasks"][task_key]
-        return Task(**task_data)
-    return {"error": "Task not found"}
+    conn = await database.get_db_connection()
+    async with conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT * FROM tasks WHERE id = %s", (task_id,))
+            task_data = await cur.fetchone()
+            if task_data:
+                return Task(**task_data)
+    raise HTTPException(status_code=404, detail="Task not found")
 
 
 @task_routes.get("/", response_model=list[Task])
 async def read_tasks():
-    all_tasks = []
-    for task_data in database.DB["tasks"].values():
-        all_tasks.append(Task(**task_data))
-    return all_tasks
+    conn = await database.get_db_connection()
+    async with conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT * FROM tasks")
+            rows = await cur.fetchall()
+            return [Task(**row) for row in rows]
 
 
 @task_routes.post("/")
-async def create_task(task: Task)->Task:
-    new_id = database.NEXT_TASK_ID
-    database.NEXT_TASK_ID += 1
-    task_data = task.model_dump()
-    task_data["id"] = new_id
-    database.DB["tasks"][str(new_id)] = task_data
-    database.save()
-    return Task(**task_data)
+async def create_task(task: Task) -> Task:
+    conn = await database.get_db_connection()
+    async with conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                INSERT INTO tasks (title, description, priority, status, assigned_to)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id, title, description, priority, status, assigned_to
+                """,
+                (task.title, task.description, task.priority, task.status, task.assigned_to)
+            )
+            new_task_data = await cur.fetchone()
+            await conn.commit()
+            return Task(**new_task_data)
 
 
 @task_routes.put("/{task_id}")
-async def update_task(task_id: int, task: Task)->Task:
-    task_key = str(task_id)
-    if task_key not in database.DB["tasks"]:
-        return {"error": "Task not found"}
-    task_data = task.model_dump()
-    task_data["id"] = task_id
-    database.DB["tasks"][task_key] = task_data
-    database.save()
-    return Task(**task_data)
+async def update_task(task_id: int, task: Task) -> Task:
+    conn = await database.get_db_connection()
+    async with conn:
+        async with conn.cursor() as cur:
+            # Check if task exists first (optional, but good for returning 404 vs 500)
+            # Actually UPDATE RETURNING works too
+            await cur.execute(
+                """
+                UPDATE tasks
+                SET title = %s, description = %s, priority = %s, status = %s, assigned_to = %s
+                WHERE id = %s
+                RETURNING id, title, description, priority, status, assigned_to
+                """,
+                (task.title, task.description, task.priority, task.status, task.assigned_to, task_id)
+            )
+            updated_task_data = await cur.fetchone()
+            await conn.commit()
+            
+            if updated_task_data:
+                return Task(**updated_task_data)
+    raise HTTPException(status_code=404, detail="Task not found")
 
 
 @task_routes.delete("/{task_id}")
-async def delete_task(task_id: int)->dict[str,str]:
-    task_key = str(task_id)
-    if task_key not in database.DB["tasks"]:
-        return {"error": "Task not found"}
-    del database.DB["tasks"][task_key]
-    database.save()
-    return {"message": "Task deleted successfully"}
+async def delete_task(task_id: int) -> dict[str, str]:
+    conn = await database.get_db_connection()
+    async with conn:
+        async with conn.cursor() as cur:
+            await cur.execute("DELETE FROM tasks WHERE id = %s RETURNING id", (task_id,))
+            deleted = await cur.fetchone()
+            await conn.commit()
+            
+            if deleted:
+                return {"message": "Task deleted successfully"}
+    raise HTTPException(status_code=404, detail="Task not found")

@@ -1,51 +1,62 @@
+import os
+import psycopg
+from psycopg.rows import dict_row
 
-"""
-This module holds the in-memory database and global counters, persisted to a JSON file.
-"""
-import json
-from pathlib import Path
+# Database Configuration
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_USER = os.getenv("POSTGRES_USER", "postgres")
+DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
+DB_NAME = os.getenv("POSTGRES_DB", "postgres")
 
-# Path to the JSON database file
-DB_FILE = Path(__file__).parent / "db.json"
-
-# In-memory database with valid tables
-DB = {
-    "users": {},
-    "tasks": {}
-}
-
-# Global counters for IDs
-NEXT_USER_ID = 1
-NEXT_TASK_ID = 1
-
-
-def save():
-    """Save the current state of DB and counters to the JSON file."""
-    data = {
-        "DB": DB,
-        "NEXT_USER_ID": NEXT_USER_ID,
-        "NEXT_TASK_ID": NEXT_TASK_ID
-    }
+async def get_db_connection():
+    """Establish and return an asynchronous connection to the PostgreSQL database."""
     try:
-        with open(DB_FILE, "w") as f:
-            json.dump(data, f, indent=4)
+        conn = await psycopg.AsyncConnection.connect(
+            host=DB_HOST,
+            port=DB_PORT,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            dbname=DB_NAME,
+            row_factory=dict_row
+        )
+        return conn
+    except psycopg.OperationalError as e:
+        print(f"Error connecting to database: {e}")
+        raise
+
+async def init_db():
+    """Initialize the database tables if they do not exist."""
+    conn = None
+    try:
+        conn = await get_db_connection()
+        async with conn:
+            async with conn.cursor() as cur:
+                # Create Users Table
+                await cur.execute("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        id SERIAL PRIMARY KEY,
+                        username VARCHAR(100) UNIQUE NOT NULL,
+                        role VARCHAR(20) DEFAULT 'user',
+                        disabled BOOLEAN DEFAULT FALSE,
+                        hashed_password VARCHAR NOT NULL
+                    );
+                """)
+                
+                # Create Tasks Table
+                await cur.execute("""
+                    CREATE TABLE IF NOT EXISTS tasks (
+                        id SERIAL PRIMARY KEY,
+                        title VARCHAR(100) NOT NULL,
+                        description VARCHAR(300),
+                        priority VARCHAR(10) DEFAULT 'medium',
+                        status VARCHAR(20) DEFAULT 'pending',
+                        assigned_to INTEGER REFERENCES users(id) ON DELETE SET NULL
+                    );
+                """)
+        print("Database initialized successfully.")
     except Exception as e:
-        print(f"Error saving database: {e}")
-
-
-def load():
-    """Load the state from the JSON file into memory."""
-    global DB, NEXT_USER_ID, NEXT_TASK_ID
-    if DB_FILE.exists():
-        try:
-            with open(DB_FILE, "r") as f:
-                data = json.load(f)
-                DB = data.get("DB", {"users": {}, "tasks": {}})
-                NEXT_USER_ID = data.get("NEXT_USER_ID", 1)
-                NEXT_TASK_ID = data.get("NEXT_TASK_ID", 1)
-
-        except (json.JSONDecodeError, OSError) as e:
-            print(f"Error loading database: {e}")
-
-# Load data immediately upon module import
-load()
+        print(f"Failed to initialize database: {e}")
+    finally:
+        if conn:
+            await conn.close()
