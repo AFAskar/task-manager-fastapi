@@ -1,0 +1,64 @@
+{
+    "DB": {
+        "users": {
+            "1": {
+                "id": 1,
+                "username": "user",
+                "role": "user",
+                "disabled": null,
+                "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$nNuGjyl6UDZsiC70pHvKmQ$EWButOQ/j43AMTnzSnhwdf9CYeeZ+kjAbS9TfjMwI5M"
+            },
+            "2": {
+                "id": 2,
+                "username": "admin",
+                "role": "user",
+                "disabled": null,
+                "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$khQRw6xxohhnVrGY6KPjuA$Ha4Li7KSaUyKghxDs64IyjyFGsqL8OjrKt4QdsikBcw"
+            }
+        },
+        "tasks": {
+            "1": {
+                "id": 1,
+                "title": "Test",
+                "description": "kjashdiu",
+                "priority": "medium",
+                "status": "pending",
+                "assigned_to": 1
+            },
+            "2": {
+                "id": 2,
+                "title": "User Task",
+                "description": "paskjdoisj",
+                "priority": "medium",
+                "status": "pending",
+                "assigned_to": 1
+            },
+            "4": {
+                "id": 4,
+                "title": "Test",
+                "description": "kjasndijashid",
+                "priority": "medium",
+                "status": "pending",
+                "assigned_to": 2
+            },
+            "5": {
+                "id": 5,
+                "title": "Saslkjdiu",
+                "description": "akmsndijsahdiu",
+                "priority": "medium",
+                "status": "pending",
+                "assigned_to": 1
+            },
+            "6": {
+                "id": 6,
+                "title": "Sasdkna",
+                "description": "asdnaijshd",
+                "priority": "medium",
+                "status": "pending",
+                "assigned_to": 2
+            }
+        }
+    },
+    "NEXT_USER_ID": 3,
+    "NEXT_TASK_ID": 7
+}
