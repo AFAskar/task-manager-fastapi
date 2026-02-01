@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -5,6 +6,17 @@ from fastapi.responses import FileResponse
 from pathlib import Path
 from task_manager.routers import users, tasks
 from task_manager import database
+
+reqs = ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "DB_HOST", "DB_PORT"]
+
+if os.environ.get("ENV") == "production":
+    if os.environ.get("constring"):
+        pass
+    missing = [r for r in reqs if r not in os.environ]
+    if missing:
+        raise EnvironmentError(
+            f"Missing required environment variables for production: {', '.join(missing)}"
+        )
 
 
 @asynccontextmanager
