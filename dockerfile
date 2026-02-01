@@ -12,5 +12,6 @@ COPY . .
 RUN uv sync --frozen --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app/src:$PYTHONPATH"
 EXPOSE 8000
 CMD ["uvicorn", "src.task_manager.main:app", "--port", "8000", "--host", "0.0.0.0"]

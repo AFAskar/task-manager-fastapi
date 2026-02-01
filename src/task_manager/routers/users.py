@@ -5,8 +5,8 @@ import jwt
 from jwt.exceptions import InvalidTokenError
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from schemas import models
-import database
+from task_manager.schemas import models
+from task_manager import database
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
@@ -14,7 +14,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 user_routes = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token") # Updated tokenUrl to match full path if needed, or keeping it relative
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token")
 User = models.User
 UserCreate = models.UserCreate
 UserInDB = models.UserInDB
@@ -53,7 +53,9 @@ async def get_user_by_username(username: str) -> UserInDB | None:
         conn = await database.get_db_connection()
         async with conn:
             async with conn.cursor() as cur:
-                await cur.execute("SELECT * FROM users WHERE username = %s", (username,))
+                await cur.execute(
+                    "SELECT * FROM users WHERE username = %s", (username,)
+                )
                 row = await cur.fetchone()
                 if row:
                     return UserInDB(**row)
@@ -96,10 +98,10 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(username=user_id)
     except InvalidTokenError:
         raise credentials_exception
-    
-    # user_id in token 'sub' is actually the ID as string in previous code, 
+
+    # user_id in token 'sub' is actually the ID as string in previous code,
     # but let's check login_for_access_token used user.id.
-    user = await get_user(user_id=token_data.username) 
+    user = await get_user(user_id=token_data.username)
     if user is None:
         raise credentials_exception
     return user
@@ -144,12 +146,16 @@ async def create_user(user: UserCreate) -> User:
     async with conn:
         async with conn.cursor() as cur:
             # Check if username exists
-            await cur.execute("SELECT 1 FROM users WHERE username = %s", (user.username,))
+            await cur.execute(
+                "SELECT 1 FROM users WHERE username = %s", (user.username,)
+            )
             if await cur.fetchone():
-                raise HTTPException(status_code=400, detail="Username already registered")
-            
+                raise HTTPException(
+                    status_code=400, detail="Username already registered"
+                )
+
             hashed_password = get_password_hash(user.password)
-            
+
             # Insert new user
             await cur.execute(
                 """
@@ -157,11 +163,11 @@ async def create_user(user: UserCreate) -> User:
                 VALUES (%s, %s, %s, %s)
                 RETURNING id, username, role, disabled, hashed_password
                 """,
-                (user.username, user.role, user.disabled, hashed_password)
+                (user.username, user.role, user.disabled, hashed_password),
             )
             new_user_data = await cur.fetchone()
             await conn.commit()
-            
+
             return UserInDB(**new_user_data)
 
 

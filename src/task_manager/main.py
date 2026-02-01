@@ -3,8 +3,8 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
-from routers import users, tasks
-import database
+from task_manager.routers import users, tasks
+from task_manager import database
 
 
 @asynccontextmanager

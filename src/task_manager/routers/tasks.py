@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from schemas import models
-import database
+from task_manager.schemas import models
+from task_manager import database
+
 
 task_routes = APIRouter()
 Task = models.Task
@@ -39,7 +40,13 @@ async def create_task(task: Task) -> Task:
                 VALUES (%s, %s, %s, %s, %s)
                 RETURNING id, title, description, priority, status, assigned_to
                 """,
-                (task.title, task.description, task.priority, task.status, task.assigned_to)
+                (
+                    task.title,
+                    task.description,
+                    task.priority,
+                    task.status,
+                    task.assigned_to,
+                ),
             )
             new_task_data = await cur.fetchone()
             await conn.commit()
@@ -60,11 +67,18 @@ async def update_task(task_id: int, task: Task) -> Task:
                 WHERE id = %s
                 RETURNING id, title, description, priority, status, assigned_to
                 """,
-                (task.title, task.description, task.priority, task.status, task.assigned_to, task_id)
+                (
+                    task.title,
+                    task.description,
+                    task.priority,
+                    task.status,
+                    task.assigned_to,
+                    task_id,
+                ),
             )
             updated_task_data = await cur.fetchone()
             await conn.commit()
-            
+
             if updated_task_data:
                 return Task(**updated_task_data)
     raise HTTPException(status_code=404, detail="Task not found")
@@ -75,10 +89,12 @@ async def delete_task(task_id: int) -> dict[str, str]:
     conn = await database.get_db_connection()
     async with conn:
         async with conn.cursor() as cur:
-            await cur.execute("DELETE FROM tasks WHERE id = %s RETURNING id", (task_id,))
+            await cur.execute(
+                "DELETE FROM tasks WHERE id = %s RETURNING id", (task_id,)
+            )
             deleted = await cur.fetchone()
             await conn.commit()
-            
+
             if deleted:
                 return {"message": "Task deleted successfully"}
     raise HTTPException(status_code=404, detail="Task not found")
