@@ -1,35 +1,8 @@
 services:
-  traefik:
-    image: traefik:v3.6
-    container_name: traefik
-    command:
-      - "--api.insecure=false"
-      - "--api.dashboard=true"
-      - "--providers.docker=true" # Listen to Docker events
-      - "--providers.docker.exposedbydefault=false" # Only expose containers with exact labels
-      - "--entrypoints.web.address=:80" # Listen on port 80
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.http.tls=true"
-
-    ports:
-      - "80:80" # The HTTP port
-      - "443:443" # The HTTPS port
-      - "8080:8080" # The Traefik Dashboard port
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro # Allow Traefik to talk to Docker
-      - "./certs:/certs:ro"
-      - "./dynamic:/etc/traefik/dynamic:ro"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`dashboard.docker.localhost`)"
-      - "traefik.http.routers.dashboard.entrypoints=websecure"
-      - "traefik.http.routers.dashboard.service=api@internal"
-      - "traefik.http.routers.dashboard.tls=true"
-
   fastapi:
     build: .
-    # ports:
-    #   - "8000:8000" <--- We REMOVE direct port access. Traffic must go through Traefik.
+    ports:
+      - "8000:8000"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -39,11 +12,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.fastapi.rule=Host(`fastapi.docker.localhost`)"
-      - "traefik.http.routers.fastapi.entrypoints=websecure"
-      - "traefik.http.routers.fastapi.tls=true"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
